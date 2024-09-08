@@ -33,6 +33,7 @@ mongodb
   .connect(process.env.MONGODB_URI)
   .then((client) => {
     console.log("Listening on port 3100");
+    client.db().collection;
     client.close();
   })
   .catch((err) => console.log(err));
