@@ -3,7 +3,7 @@ const dotEnv = require("dotenv");
 
 const express = require("express");
 const bodyParser = require("body-parser");
-const mongodb = require("mongodb").MongoClient;
+const db = require("./db");
 
 dotEnv.config();
 
@@ -29,13 +29,11 @@ app.use((req, res, next) => {
 app.use("/products", productRoutes);
 app.use("/", authRoutes);
 
-mongodb
-  .connect(process.env.MONGODB_URI)
-  .then((client) => {
-    console.log("Listening on port 3100");
-    client.db().collection;
-    client.close();
-  })
-  .catch((err) => console.log(err));
-
-app.listen(3100);
+db.initDb((err, db) => {
+  if (err) {
+    throw err;
+  } else {
+    console.log("Database initialized");
+    app.listen(3100);
+  }
+});

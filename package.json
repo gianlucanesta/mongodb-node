@@ -20,6 +20,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
-    "start:server": "node ./backend/app.js"
+    "start:server": "nodemon ./backend/app.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
   }
 }

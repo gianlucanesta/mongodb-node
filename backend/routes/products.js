@@ -1,7 +1,7 @@
 const Router = require("express").Router;
 const dotEnv = require("dotenv");
-const mongodb = require("mongodb");
-const MongoClient = mongodb.MongoClient;
+
+const db = require("../db");
 
 const Decimal128 = require("mongodb").Decimal128;
 
@@ -68,26 +68,22 @@ router.get("/", (req, res, next) => {
   //     queryPage * pageSize
   //   );
   // }
-  MongoClient.connect(process.env.MONGODB_URI)
-    .then((client) => {
-      const products = [];
-      client
-        .db()
-        .collection("products")
-        .find()
-        .forEach((productDoc) => {
-          productDoc.price = productDoc.price.toString();
-          products.push(productDoc);
-        })
-        .then(() => {
-          client.close();
-          res.status(200).json(products);
-        })
-        .catch((err) => {
-          console.log(err);
-          client.close();
-          res.status(500).json({ message: "An error occurred." });
-        });
+
+  const products = [];
+  db.getDb()
+    .db()
+    .collection("products")
+    .find()
+    .forEach((productDoc) => {
+      productDoc.price = productDoc.price.toString();
+      products.push(productDoc);
+    })
+    .then(() => {
+      res.status(200).json(products);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ message: "An error occurred." });
     })
     .catch((err) => {
       console.log(err);
@@ -95,14 +91,11 @@ router.get("/", (req, res, next) => {
     });
 });
 
-// Get single product
 router.get("/:id", (req, res, next) => {
   const product = products.find((p) => p._id === req.params.id);
   res.json(product);
 });
 
-// Add new product
-// Requires logged in user
 router.post("", (req, res, next) => {
   const newProduct = {
     name: req.body.name,
@@ -110,29 +103,23 @@ router.post("", (req, res, next) => {
     price: Decimal128.fromString(req.body.price.toString()),
     image: req.body.image,
   };
-  MongoClient.connect(process.env.MONGODB_URI).then((client) => {
-    client
-      .db()
-      .collection("products")
-      .insertOne(newProduct)
-      .then((res) => {
-        console.log(res);
-        client.close();
-        res
-          .status(201)
-          .json({ message: "Product added", productId: res.insertedId });
-      })
-      .catch((err) => {
-        console.log(err);
-        client.close();
-        res.status(500).json({ message: "An error occurred." });
-      });
-  });
+
+  db.getDb()
+    .collection("products")
+    .insertOne(newProduct)
+    .then((result) => {
+      console.log(result);
+      res
+        .status(201)
+        .json({ message: "Product added", productId: result.insertedId });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ message: "An error occurred." });
+    });
   console.log(newProduct);
 });
 
-// Edit existing product
-// Requires logged in user
 router.patch("/:id", (req, res, next) => {
   const updatedProduct = {
     name: req.body.name,
@@ -144,8 +131,6 @@ router.patch("/:id", (req, res, next) => {
   res.status(200).json({ message: "Product updated", productId: "DUMMY" });
 });
 
-// Delete a product
-// Requires logged in user
 router.delete("/:id", (req, res, next) => {
   res.status(200).json({ message: "Product deleted" });
 });
