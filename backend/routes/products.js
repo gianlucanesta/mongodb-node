@@ -1,7 +1,11 @@
 const Router = require("express").Router;
 const dotEnv = require("dotenv");
-const mongodb = require("mongodb").MongoClient;
+const mongodb = require("mongodb");
 const MongoClient = mongodb.MongoClient;
+
+const Decimal128 = require("mongodb").Decimal128;
+
+dotEnv.config();
 
 const router = Router();
 
@@ -82,18 +86,29 @@ router.post("", (req, res, next) => {
   const newProduct = {
     name: req.body.name,
     description: req.body.description,
-    price: parseFloat(req.body.price), // store this as 128bit decimal in MongoDB
+    price: Decimal128.fromString(req.body.price.toString()),
     image: req.body.image,
   };
-  MongoClient.connect(process.env.MONGODB_URI)
-    .then((client) => {
-      console.log("Listening on port 3100");
-      client.db().collection("products").insertOne(newProduct);
-      client.close();
-    })
-    .catch((err) => console.log(err));
+  MongoClient.connect(process.env.MONGODB_URI).then((client) => {
+    console.log("Listening on port 3100");
+    client
+      .db()
+      .collection("products")
+      .insertOne(newProduct)
+      .then((res) => {
+        console.log(res);
+        client.close();
+        res
+          .status(201)
+          .json({ message: "Product added", productId: res.insertedId });
+      })
+      .catch((err) => {
+        console.log(err);
+        client.close();
+        res.status(500).json({ message: "An error occurred." });
+      });
+  });
   console.log(newProduct);
-  res.status(201).json({ message: "Product added", productId: "DUMMY" });
 });
 
 // Edit existing product
