@@ -1,9 +1,12 @@
 const Router = require("express").Router;
 const dotEnv = require("dotenv");
 
+const mongodb = require("mongodb");
+
 const db = require("../db");
 
-const Decimal128 = require("mongodb").Decimal128;
+const Decimal128 = mongodb.Decimal128;
+const ObjectId = mongodb.ObjectId;
 
 dotEnv.config();
 
@@ -92,8 +95,28 @@ router.get("/", (req, res, next) => {
 });
 
 router.get("/:id", (req, res, next) => {
-  const product = products.find((p) => p._id === req.params.id);
-  res.json(product);
+  const productId = req.params.id;
+
+  // Verifica se l'ID passato è valido
+  if (!ObjectId.isValid(productId)) {
+    return res.status(400).json({ message: "Invalid product ID." });
+  }
+
+  db.getDb()
+    .db()
+    .collection("products")
+    .findOne({ _id: new ObjectId(req.params.id) })
+    .then((productDoc) => {
+      productDoc.price = productDoc.price.toString();
+      if (!productDoc) {
+        return res.status(404).json({ message: "Product not found." });
+      }
+      res.status(200).json(productDoc);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ message: "An error occurred." });
+    });
 });
 
 router.post("", (req, res, next) => {
