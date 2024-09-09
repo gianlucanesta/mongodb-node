@@ -62,6 +62,8 @@ const products = [
 ];
 
 router.get("/", (req, res, next) => {
+  const queryPage = req.query.page;
+  const pageSize = 1;
   // const queryPage = req.query.page;
   // const pageSize = 5;
   // let resultProducts = [...products];
@@ -77,6 +79,9 @@ router.get("/", (req, res, next) => {
     .db()
     .collection("products")
     .find()
+    .sort({ price: -1 })
+    .skip((queryPage - 1) * pageSize)
+    .limit(pageSize)
     .forEach((productDoc) => {
       productDoc.price = productDoc.price.toString();
       products.push(productDoc);
