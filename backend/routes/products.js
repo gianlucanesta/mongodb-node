@@ -62,17 +62,8 @@ const products = [
 ];
 
 router.get("/", (req, res, next) => {
-  const queryPage = req.query.page;
-  const pageSize = 1;
   // const queryPage = req.query.page;
-  // const pageSize = 5;
-  // let resultProducts = [...products];
-  // if (queryPage) {
-  //   resultProducts = products.slice(
-  //     (queryPage - 1) * pageSize,
-  //     queryPage * pageSize
-  //   );
-  // }
+  // const pageSize = 1;
 
   const products = [];
   db.getDb()
