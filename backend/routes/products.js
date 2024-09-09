@@ -80,8 +80,8 @@ router.get("/", (req, res, next) => {
     .collection("products")
     .find()
     .sort({ price: -1 })
-    .skip((queryPage - 1) * pageSize)
-    .limit(pageSize)
+    // .skip((queryPage - 1) * pageSize)
+    // .limit(pageSize)
     .forEach((productDoc) => {
       productDoc.price = productDoc.price.toString();
       products.push(productDoc);
